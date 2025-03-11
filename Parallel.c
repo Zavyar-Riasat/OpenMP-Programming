@@ -6,7 +6,7 @@
 #define ROWS 20
 #define COLS 20
 
-void parallel_matrix_vector_addition(float matrix[ROWS][COLS], const float vector[COLS], float result[ROWS][COLS]) {
+void parallel_matrix_vector_addition(float **matrix, const float *vector, float **result) {
     int num_threads = omp_get_max_threads();
     omp_set_num_threads(num_threads);
 
@@ -27,9 +27,19 @@ void parallel_matrix_vector_addition(float matrix[ROWS][COLS], const float vecto
 }
 
 int main() {
-    float matrix[ROWS][COLS];
-    float result[ROWS][COLS];
-    float vector[COLS];
+    float **matrix = (float **)malloc(ROWS * sizeof(float *));
+    float **result = (float **)malloc(ROWS * sizeof(float *));
+    float *vector = (float *)malloc(COLS * sizeof(float));
+
+    if (matrix == NULL || vector == NULL || result == NULL) {
+        printf("Memory allocation failed!\n");
+        return 1;
+    }
+
+    for (int i = 0; i < ROWS; i++) {
+        matrix[i] = (float *)malloc(COLS * sizeof(float));
+        result[i] = (float *)malloc(COLS * sizeof(float));
+    }
 
     srand(time(NULL));
 
@@ -50,6 +60,14 @@ int main() {
     double end_par = omp_get_wtime();
 
     printf("Parallel Execution Time: %f seconds\n", end_par - start_par);
+
+    for (int i = 0; i < ROWS; i++) {
+        free(matrix[i]);
+        free(result[i]);
+    }
+    free(matrix);
+    free(result);
+    free(vector);
 
     return 0;
 }
